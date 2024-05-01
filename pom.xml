@@ -6,7 +6,7 @@
 
   <groupId>com.vertispan.j2cl</groupId>
   <artifactId>j2cl-tools</artifactId>
-  <version>0.21-SNAPSHOT</version>
+  <version>0.23-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>J2CL Build Tools</name>
@@ -81,14 +81,14 @@
     <!-- Plugin dependencies versions-->
     <maven.version>3.3.9</maven.version>
     <maven.resolver.version>1.3.1</maven.resolver.version>
-    <maven.enforcer.plugin.version>1.4.1</maven.enforcer.plugin.version>
+    <maven.enforcer.plugin.version>3.4.1</maven.enforcer.plugin.version>
     <maven.source.plugin.version>3.0.1</maven.source.plugin.version>
     <maven.javadoc.plugin.version>3.0.1</maven.javadoc.plugin.version>
     <maven.gpg.plugin.version>1.6</maven.gpg.plugin.version>
 
     <!-- Builder dependencies versions -->
-    <j2cl.version>0.11.0-9336533b6</j2cl.version>
-    <closure.compiler.unshaded.version>v20221102-1</closure.compiler.unshaded.version>
+    <j2cl.version>v20230718-1</j2cl.version>
+    <closure.compiler.unshaded.version>v20230411-1</closure.compiler.unshaded.version>
     <commons.codec.version>1.11</commons.codec.version>
     <commons.io.version>2.7</commons.io.version>
 
@@ -105,7 +105,7 @@
     <error.prone.annotations.version>2.1.3</error.prone.annotations.version>
     <jsr305.version>3.0.2</jsr305.version>
     <commons.lang3.version>3.8.1</commons.lang3.version>
-    <google.turbine.version>v20220503-1</google.turbine.version>
+    <google.turbine.version>0.2.1</google.turbine.version>
     <slf4j.api.version>1.7.5</slf4j.api.version>
 
     <!-- Test goal -->
@@ -115,7 +115,7 @@
     <jetty.version>9.4.43.v20210629</jetty.version>
 
     <!-- Required core j2cl dependencies -->
-    <vertispan.jsinterop.base.version>1.0.0-1</vertispan.jsinterop.base.version>
+    <vertispan.jsinterop.base.version>1.0.1-1</vertispan.jsinterop.base.version>
 
     <!-- Configurations -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -262,7 +262,7 @@
       </dependency>
 
       <dependency>
-        <groupId>com.vertispan.turbine</groupId>
+        <groupId>com.google.turbine</groupId>
         <artifactId>turbine</artifactId>
         <version>${google.turbine.version}</version>
       </dependency>
@@ -355,6 +355,35 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-site-plugin</artifactId>
         <version>3.11.0</version>
+      </plugin>
+      <plugin>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>3.0</version>
+        <configuration>
+          <header>LICENSE.header</header>
+          <encoding>${project.build.sourceEncoding}</encoding>
+          <skipExistingHeaders>true</skipExistingHeaders>
+          <mapping>
+            <java>SLASHSTAR_STYLE</java>
+          </mapping>
+          <includes>
+            <include>**/*.java</include>
+          </includes>
+          <excludes>
+            <exclude>**/src/*/resources/**</exclude>
+          </excludes>
+          <properties>
+            <year>${project.inceptionYear}</year>
+          </properties>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
     <pluginManagement>

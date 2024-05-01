@@ -1,8 +1,24 @@
+/*
+ * Copyright © 2022 j2cl-maven-plugin authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.vertispan.j2cl.build.provided;
 
 import com.google.auto.service.AutoService;
 import com.google.common.collect.ImmutableList;
 import com.google.j2cl.common.SourceUtils;
+import com.google.turbine.binder.ClassPathBinder;
 import com.google.turbine.diag.TurbineError;
 import com.google.turbine.main.Main;
 import com.google.turbine.options.TurbineOptions;
@@ -20,9 +36,10 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 @AutoService(TaskFactory.class)
-public class TurbineTask extends JavacTask {
+public class TurbineTask extends TaskFactory {
 
     public static final PathMatcher JAVA_SOURCES = withSuffix(".java");
+    public static final PathMatcher JAVA_BYTECODE = withSuffix(".class");
 
     @Override
     public String getOutputType() {
@@ -41,17 +58,15 @@ public class TurbineTask extends JavacTask {
 
     @Override
     public Task resolve(Project project, Config config) {
-        int version = SourceVersion.latestSupported().ordinal();
-        if(version == 8) {
-            return super.resolve(project, config);
-        }
-
         // emits only stripped bytecode, so we're not worried about anything other than .java files to compile and .class on the classpath
         Input ownSources = input(project, OutputTypes.STRIPPED_SOURCES).filter(JAVA_SOURCES);
 
         List<File> extraClasspath = config.getExtraClasspath();
 
-        List<Input> compileClasspath = scope(project.getDependencies(), Dependency.Scope.COMPILE).stream()
+        List<Input> compileClasspath = scope(project.getDependencies().stream()
+                        .filter(dep -> dep.getProject().getProcessors().isEmpty())
+                        .collect(Collectors.toSet()), Dependency.Scope.COMPILE)
+                .stream()
                 .map(p -> input(p, OutputTypes.STRIPPED_BYTECODE_HEADERS))
                 .map(input -> input.filter(JAVA_BYTECODE))
                 .collect(Collectors.toUnmodifiableList());
@@ -96,6 +111,10 @@ public class TurbineTask extends JavacTask {
         try (ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile))) {
             ZipEntry zipEntry = zis.getNextEntry();
             while (zipEntry != null) {
+                if(zipEntry.getName().contains(ClassPathBinder.TRANSITIVE_PREFIX)) {
+                    zipEntry = zis.getNextEntry();
+                    continue;
+                }
                 boolean isDirectory = false;
                 if (zipEntry.getName().endsWith(File.separator)) {
                     isDirectory = true;

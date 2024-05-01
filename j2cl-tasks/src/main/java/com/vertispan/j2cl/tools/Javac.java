@@ -1,3 +1,18 @@
+/*
+ * Copyright © 2018 j2cl-maven-plugin authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.vertispan.j2cl.tools;
 
 import com.google.j2cl.common.SourceUtils.FileInfo;
@@ -13,6 +28,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -33,7 +49,7 @@ public class Javac {
     StandardJavaFileManager fileManager;
     private DiagnosticCollector<JavaFileObject> listener;
 
-    public Javac(BuildLog log, File generatedClassesPath, List<File> sourcePaths, List<File> classpath, File classesDirFile, File bootstrap) throws IOException {
+    public Javac(BuildLog log, File generatedClassesPath, List<File> sourcePaths, List<File> classpath, File classesDirFile, File bootstrap, Set<String> processors) throws IOException {
         this.log = log;
 //        for (File file : classpath) {
 //            System.out.println(file.getAbsolutePath() + " " + file.exists() + " " + file.isDirectory());
@@ -46,6 +62,11 @@ public class Javac {
             //java 9+
             javacOptions.add("--release=8");
         }
+        if (!processors.isEmpty()) {
+            javacOptions.add("-processor");
+            javacOptions.add(String.join(",", processors));
+        }
+
         compiler = ToolProvider.getSystemJavaCompiler();
         listener = new DiagnosticCollector<>();
         fileManager = compiler.getStandardFileManager(listener, null, null);
